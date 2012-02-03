@@ -203,8 +203,6 @@ def submit():
         db_session.commit()
 
         # submit a job in reddis
-        print 'RELEASE?', job.is_release
-        raise Exception()
         qjob.put({
             'uid': job.uid,
             'package_name': job.package_name,
