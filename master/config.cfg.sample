@@ -1,0 +1,14 @@
+[www]
+secret_key = 
+baseurl = http://yourhost:5000/
+
+[database]
+url = sqlite:////tmp/test.db
+
+[hotqueue]
+name = p4a
+host = localhost
+port = 6379
+db = 0
+password = 
+

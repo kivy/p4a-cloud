@@ -1,0 +1,9 @@
+[hotqueue]
+name=p4a
+host=localhost
+port=6379
+db=0
+password=
+
+[www]
+url=http://yourhost:5000

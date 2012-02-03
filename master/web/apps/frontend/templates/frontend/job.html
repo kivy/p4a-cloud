@@ -1,0 +1,75 @@
+{% extends "frontend/layout.html" %}
+{% block title %}P4A Build Cloud - Job {{ job.uid }} {% endblock %}
+{% block content %}
+
+{% if not job.is_failed and not job.is_done %}
+<meta http-equiv="Refresh" content="5">
+{% endif %}
+
+<h1><a href="{{ url_for('frontend.index') }}">P4A Build Cloud</a></h1>
+
+<ul>
+	<div id="col1">
+		<h2>Status</h2>
+		<div class="clear"></div>
+		<p>{{ job.package_title }}, version {{ job.package_version }}
+			{% if job.is_failed %}
+			have failed building.
+			{% elif job.is_done %}
+			is done
+			{% elif job.is_started %}
+			is building
+			{% else %}
+			is waiting in queue
+			{% endif %}
+		</p>
+		<div class="statusbar">
+		<div class="statusmessage">{{status}}</div>
+		<div class="progressbar {% if job.is_failed %}failed{% endif %}" style="width: {{pprogress}}%"></div>
+		</div>
+	</div>
+	<div id="col2">
+		<h2>Actions</h2>
+		<div class="clear"></div>
+		<div>
+		{% if job.is_done %}
+			<a class="button" href="{{url_for('frontend.download', uid=job.uid, apk=job.apk)}}">Download {{job.apk}}</a>
+		{% endif %}
+		<a class="button buttoncancel" href="{{url_for('frontend.delete', uid=job.uid)}}">Delete</a>
+		</div>
+	</div>
+
+	<div class="clear"></div>
+
+	<!--
+	<li>Package name: {{ job.package_name }}</li>
+	<li>Package title: {{ job.package_title }}</li>
+	<li>Package version: {{ job.package_version }}</li>
+	<li>Build status: {{ job.build_status }}</li>
+	<li>Status:
+		{% if job.is_done %}
+		Done
+		{% elif job.is_started %}
+		Building
+		{% else %}
+		Waiting in queue
+		{% endif %}
+		</li>
+	-->
+
+<h2>Logs</h2>
+<div class="clear"></div>
+<pre class="logs">
+{% for line in joblog %}{{ line.msg.replace(
+	'>', '&lt;').replace(
+	'<', '&gt;').replace(
+	'\n', '<br/>').replace(
+	'[34;01m', '<span style="color: blue">').replace(
+	'[31;01m', '<span style="color: red">').replace(
+	'[30;01m', '<span style="color: gray">').replace(
+	'[39;49;00m', '</span>')|safe }}<br/>
+{% endfor %}
+</pre>
+</ul>
+
+{% endblock %}

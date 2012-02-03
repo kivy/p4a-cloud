@@ -1,0 +1,122 @@
+#!/usr/bin/env python
+
+host = 'http://txzone.net:5000/'
+
+import json
+import os
+import re
+import requests
+import tempfile
+import webbrowser
+import zipfile
+
+def zipper(d, zip_file):
+    zfd = zipfile.ZipFile(zip_file, 'w', compression=zipfile.ZIP_DEFLATED)
+    root_len = len(os.path.abspath(d))
+    for root, dirs, files in os.walk(d):
+        archive_root = os.path.abspath(root)[root_len:]
+        for f in files:
+            fullpath = os.path.join(root, f)
+            archive_name = os.path.join(archive_root, f)
+            zfd.write(fullpath, archive_name, zipfile.ZIP_DEFLATED)
+    zfd.close()
+    return zip_file
+
+
+def submit_package(args):
+    url_form = args.host
+    url_submit = args.host + 'submit'
+
+    s = requests.session()
+
+    # first time, just get the csrf token
+    r = s.get(url_form)
+    csrf = re.search(u'name="csrf" type="hidden" value="(.*)"',
+            r.content).groups()[0]
+
+    # create a zip of the whole directory
+    zfd, zfn = tempfile.mkstemp(suffix='.zip')
+    zipper(args.dir, zfn)
+
+    # build the data and push it
+    payload = {
+        'package_name': args.package,
+        'package_version': args.version,
+        'package_title': args.name,
+        'package_permissions':
+            ' '.join(args.permissions) if args.permissions else '',
+        'package_orientation': args.orientation,
+        'emails': ' '.join(args.notify) if args.notify else '',
+        'modules': args.modules,
+        'csrf': csrf,
+        'batch': '1'}
+    if args.release:
+        payload['release'] = 'release'
+
+    fd = open(zfn, 'rb')
+    files = {'directory': (zfn, fd)}
+
+    if args.icon:
+        fdicon = open(args.icon, 'rb')
+        files['package_icon'] = (os.path.basename(args.icon), fdicon)
+
+    if args.presplash:
+        fdpresplash = open(args.presplash, 'rb')
+        files['package_presplash'] = (os.path.basename(args.presplash),
+                fdpresplash)
+
+    r = s.post(url_submit, data=payload, files=files)
+    r.raise_for_status()
+
+    fd.close()
+    if args.icon:
+        fdicon.close()
+    if args.presplash:
+        fdpresplash.close()
+
+    data = json.loads(r.text)
+
+    print
+    print 'Package submitted to P4A Cloud.'
+    print 'Get the build progress at:', data['url']
+    print
+
+    webbrowser.open_new_tab(data['url'])
+
+if __name__ == '__main__':
+    import argparse
+
+    ap = argparse.ArgumentParser(description='''\
+P4A Build tool using P4A Cloud.
+''')
+
+    ap.add_argument('--package', dest='package', required=True,
+        help='The name of the java package the project will be packaged under.')
+    ap.add_argument('--name', dest='name', required=True,
+        help='The human-readable name of the project.')
+    ap.add_argument('--version', dest='version', required=True,
+        help=('The version number of the project.'
+        'This should consist of numbers and dots, and should have the same '
+        'number of groups of numbers as previous versions.'))
+    ap.add_argument('--dir', dest='dir', required=True,
+        help='The directory containing files for the project.')
+    ap.add_argument('--modules', dest='modules', required=True,
+        help='Modules to compile with the program')
+    ap.add_argument('--icon', dest='icon',
+        help='Path to an icon (.png)')
+    ap.add_argument('--presplash', dest='presplash',
+        help='Path to an presplash image (.png)')
+    ap.add_argument('--permission', dest='permissions', action='append',
+        help='The android permissions needed for this app.')
+    ap.add_argument('--orientation', dest='orientation', default='landscape',
+        help='Orientation of the application. One of "landscape" or "portrait"')
+    ap.add_argument('--release', dest='release', action='store_true',
+        help='If set, then a release package will be done')
+    ap.add_argument('--notify', dest='notify', action='append',
+        help='Email to send a notification when build is finished')
+
+    ap.add_argument('--host', dest='host', default=host,
+        help='Host to push the P4A build request')
+    args = ap.parse_args()
+
+    submit_package(args)

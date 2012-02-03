@@ -1,0 +1,35 @@
+{% macro form_field(field) %}
+	{{ field.label }}
+	{{ field(placeholder=field.description, **kwargs)|safe }}
+	{% if field.errors %}
+	<div class="flash-error">
+		{% for error in field.errors %}
+		{{ error }}
+		{% endfor %}
+	</div>
+	{% endif %}
+{% endmacro %}
+
+{% macro form_begin(form) %}
+	{% if form.csrf.errors %}
+	<div class="flash-error">
+		{% for error in form.csrf.errors %}
+		{{ error }}
+		{% endfor %}
+	</div>
+	{% endif %}
+	{{ form.hidden_tag() }}
+{% endmacro %}
+
+{% macro form_field_hidden(name, value) %}
+	<input type="hidden" name="{{ name }}" value="{{ value }}"/>
+{% endmacro %}
+
+{% macro form_end(form) %}
+	{{ form.submit }}
+{% endmacro %}
+
+{% macro form_info(title, value) %}
+	<label>{{ title }}</label>
+	<input type="text" readonly="readonly" value="{{value}}"/>
+{% endmacro %}

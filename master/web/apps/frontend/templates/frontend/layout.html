@@ -1,0 +1,39 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="fr" lang="fr">
+<head>
+	<title>P4A Build Cloud</title>
+	<meta name="keywords" lang="fr" content=""/>
+	<meta name="description" content=""/>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta http-equiv="Content-Language" content="us" />
+	<meta http-equiv="Content-Script-Type" content="text/javascript" />
+	<link href="{{ url_for('frontend.static', filename='css/style.css') }}" rel="stylesheet" type="text/css" />
+	<link href="{{ url_for('frontend.static', filename='css/demo_table_jui.css') }}" rel="stylesheet" type="text/css" />
+	<link href="{{ url_for('frontend.static', filename='css/smoothness/jquery-ui-1.8.6.custom.css') }}" rel="stylesheet" type="text/css" />
+	<script type="text/javascript" src="{{ url_for('frontend.static', filename='js/jquery-1.4.2.min.js') }}"></script>
+	<script type="text/javascript" src="{{ url_for('frontend.static', filename='js/jquery-ui-1.8.6.custom.min.js') }}"></script>
+	<script type="text/javascript" src="{{ url_for('frontend.static', filename='js/jquery-ui-timepicker-addon.js') }}"></script>
+	<script type="text/javascript" src="{{ url_for('frontend.static', filename='js/jquery.dataTables.min.js') }}"></script>
+	<script type="text/javascript" src="{{ url_for('frontend.static', filename='js/jquery.defaultvalue.js') }}"></script>
+	<script type="text/javascript" src="{{ url_for('frontend.static', filename='js/genero.js') }}"></script>
+</head>
+<body class="{% block body_class %}{% endblock %}">
+	<div id="wrapper">
+	<div id="wrappercolumn">
+		<div id="pagetitle">
+			{% block pagetitle %}{% endblock %}
+		</div>
+		<div id="content{% block contentclass %}{% endblock %}">
+			{% for category, msg in get_flashed_messages(with_categories=true) %}
+			<div class="flash-{{ category }}">{{ msg }}</div>
+			{% endfor %}
+			{% block content %}{% endblock %}
+		</div>
+	</div>
+	</div>
+
+	<div id="footer">
+		&copy; Copyright 2010 - <a href="http://igirouette.fr/">Igirouette</a>
+	</div>
+</body>
+</html>

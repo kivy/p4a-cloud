@@ -1,0 +1,48 @@
+{% from "frontend/_formhelpers.html" import form_begin, form_field, form_end %}
+
+{% extends "frontend/layout.html" %}
+{% block title %}P4A Build Cloud{% endblock %}
+{% block body_class %}focus{% endblock%}
+{% block content %}
+<h1><a href="{{ url_for('frontend.index') }}">P4A Build Cloud</a></h1>
+
+<div id="col1">
+	<h2>Web submission</h2>
+	<div class="clear"></div>
+	<form action="submit" method="post" class="login" enctype="multipart/form-data">
+		{{ form_begin(form) }}
+		{{ form_field(form.package_name) }}
+		{{ form_field(form.package_title) }}
+		{{ form_field(form.package_version) }}
+		{{ form_field(form.modules) }}
+		{{ form_field(form.directory) }}
+		<p>
+			<a id="expertmode">More options &raquo;</a>
+		</p>
+		<div id="expertdiv">
+			{{ form_field(form.package_permissions) }}
+			{{ form_field(form.package_icon) }}
+			{{ form_field(form.package_presplash) }}
+			{{ form_field(form.release) }}
+			{{ form_field(form.emails) }}
+		</div>
+		{{ form_end(form) }}
+	</form>
+
+</div>
+<div id="col2">
+	<h2>Command line</h2>
+	<div class="clear"></div>
+	<p>Install p4a-build tool:</p>
+	<pre>pip install p4a-build</pre>
+	<p>Usage:</p>
+	<pre>p4a-build \
+  --package org.kivy.touchtracer \
+  --name Touchtracer \
+  --version 1.0 \
+  --modules "pil kivy" \
+  --dir /path/to/app
+</pre>
+</div>
+
+{% endblock %}
