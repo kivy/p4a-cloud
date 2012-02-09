@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name='p4a-build',
-    version='1.0',
+    version='1.0.1',
     author='Mathieu Virbel',
     author_email='mat@kivy.org',
     scripts=['p4a-build'],

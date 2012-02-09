@@ -1,0 +1,11 @@
+Flask==0.8
+Flask-WTF==0.5.2
+Jinja2==2.6
+WTForms==0.6.3
+Werkzeug==0.8.2
+dotcloud==0.4.3
+dotcloud.cli==0.4.3
+hotqueue==0.2.6
+redis==2.4.10
+wsgiref==0.1.2
+wtf==0.1

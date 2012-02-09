@@ -6,12 +6,11 @@ __all__ = ('frontend', )
 
 from flask import Blueprint, render_template, url_for, redirect, abort, \
     send_file, request, make_response, jsonify
-from web.database import db_session
-from web.models import Job, JobLog
+from web.job import read_job, read_logs, JobObj
 from werkzeug import secure_filename
-from web.config import qjob
-from sqlalchemy.sql import desc
-from os.path import realpath
+from web.config import qjob, r
+from os.path import exists
+from uuid import uuid4
 import subprocess
 import re
 
@@ -53,14 +52,14 @@ class JobForm(Form):
     release = BooleanField('Release mode')
     submit = SubmitField('Submit')
 
-
 @frontend.route('/job/<uid>')
 def job(uid):
-    job = Job.query.filter_by(uid=uid).first()
-    if not job:
+    job = read_job(uid)
+    if job is None:
         return redirect(url_for('frontend.index'))
-    joblog = JobLog.query.filter_by(job_id=job.id).order_by(desc(JobLog.id)).limit(20)
-    joblog = list(reversed(joblog[:]))
+
+    # get the log associated to the job
+    joblog = list(reversed(read_logs(uid)))
     progress = job.build_status
     if not progress:
         pprogress = 0
@@ -83,61 +82,56 @@ def job(uid):
 
 @frontend.route('/job/<uid>/delete')
 def delete(uid):
-    job = Job.query.filter_by(uid=uid).first()
+    job = read_job(uid, 'package_name')
     if not job:
         abort(404)
 
     # delte job directory
-    d = realpath(job.directory)
+    d = job.directory
     if d and len(d) > 10:
         subprocess.Popen(['rm', '-rf', d], shell=False).communicate()
 
-    # delete associated logs and job
-    db_session.query(JobLog).filter_by(job_id=job.id).delete()
-    db_session.delete(job)
-    db_session.commit()
-    db_session.flush()
+    r.delete('job:%s*' % uid)
+    r.delete('log:%s*' % uid)
 
     return redirect(url_for('frontend.index'))
 
-
 @frontend.route('/api/data/<uid>')
 def jobdata(uid):
-    job = Job.query.filter_by(uid=uid).first()
+    job = read_job(uid, 'directory', 'data_ext')
     if not job:
         return abort(404)
-    job.is_started = True
-    job.dt_started = time()
-    db_session.commit()
+    print job
+    r.set('job:%s:dt_started' % uid, time())
+    r.set('job:%s:is_started' % uid, 1)
     return send_file(job.data_fn)
 
 @frontend.route('/api/icon/<uid>')
 def jobicon(uid):
-    job = Job.query.filter_by(uid=uid).first()
-    if not job or not job.have_icon:
+    job = read_job(uid, 'directory', 'have_icon')
+    if not job or not job.have_icon or not exists(job.icon_fn):
         return abort(404)
     return send_file(job.icon_fn)
 
 @frontend.route('/api/presplash/<uid>')
 def jobpresplash(uid):
-    job = Job.query.filter_by(uid=uid).first()
-    if not job or not job.have_presplash:
+    job = read_job(uid, 'directory')
+    if not job or not job.have_presplash or not exists(job.presplash_fn):
         return abort(404)
     return send_file(job.presplash_fn)
 
 @frontend.route('/api/push/<uid>', methods=['POST'])
 def jobpush(uid):
-    job = Job.query.filter_by(uid=uid).first()
+    job = read_job(uid)
     if not job:
         return abort(404)
     file = request.files['file']
     if file and file.filename.rsplit('.', 1)[-1] == 'apk':
         filename = secure_filename(file.filename)
         file.save(join(job.directory, filename))
-        job.apk = filename
-        job.is_done = True
-        job.dt_done = time()
-        db_session.commit()
+        r.set('job:%s:apk' % uid, filename)
+        r.set('job:%s:dt_done' % uid, time())
+        r.set('job:%s:is_done' % uid, 1)
 
         try:
             job.notify()
@@ -149,8 +143,8 @@ def jobpush(uid):
 
 @frontend.route('/download/<uid>/<apk>')
 def download(uid, apk):
-    job = Job.query.filter_by(uid=uid).first()
-    if not job or job.apk is None or job.is_done is False:
+    job = read_job(uid, 'apk', 'directory', 'dt_done')
+    if not job or not job.apk or not job.dt_done:
         return abort(404)
     return send_file(job.apk_fn)
 
@@ -166,14 +160,22 @@ def csplit(s):
 def submit():
     form = JobForm()
     if form.validate_on_submit():
-        job = Job()
-
         fn = secure_filename(form.directory.file.filename)
         ext = splitext(fn)[-1]
         if splitext(fn)[-1] not in (
                 '.zip'):#, '.tbz', '.tar.gz', '.tbz2', '.tar.bz2'):
             return render_template('frontend/index.html', form=form,
                     error='Invalid application directory package')
+
+        # create a job
+        uid = str(uuid4())
+
+        # fake job obj for getting path
+        job = JobObj({'uid': uid})
+
+        jobkey = 'job:%s' % uid
+        basekey = jobkey + ':'
+        r.set(basekey + 'dt_added', time())
 
         # create the job directory
         d = job.directory
@@ -182,25 +184,37 @@ def submit():
 
         if form.package_presplash.file:
             form.package_presplash.file.save(job.presplash_fn)
-            job.have_presplash = True
+            r.set(basekey + 'have_presplash', 1)
+        else:
+            r.set(basekey + 'have_presplash', 0)
 
         if form.package_icon.file:
             form.package_icon.file.save(job.icon_fn)
-            job.have_icon = True
+            r.set(basekey + 'have_icon', 1)
+        else:
+            r.set(basekey + 'have_icon', 0)
 
         # add in the database
-        job.package_name = form.package_name.data
-        job.package_version = form.package_version.data
-        job.package_title = form.package_title.data
-        job.package_orientation = form.package_orientation.data
-        job.package_permissions = form.package_permissions.data
-        job.modules = form.modules.data
-        job.emails = form.emails.data
-        if form.release.data:
-            job.is_release = True
-        job.data_ext = ext
-        db_session.add(job)
-        db_session.commit()
+        r.set(basekey + 'package_name', form.package_name.data)
+        r.set(basekey + 'package_version', form.package_version.data)
+        r.set(basekey + 'package_title', form.package_title.data)
+        r.set(basekey + 'package_orientation', form.package_orientation.data)
+        r.set(basekey + 'package_permissions', form.package_permissions.data)
+        r.set(basekey + 'modules', form.modules.data)
+        r.set(basekey + 'emails', form.emails.data)
+        r.set(basekey + 'data_ext', ext)
+        r.set(basekey + 'is_release', 1 if form.release.data else 0)
+        r.set(basekey + 'build_status', '')
+        r.set(basekey + 'is_failed', 0)
+        r.set(basekey + 'is_started', 0)
+        r.set(basekey + 'is_done', 0)
+        r.set(basekey + 'apk', '')
+
+        # creation finished
+        r.set(jobkey, 1)
+
+        # not optimized, but reread it.
+        job = read_job(uid)
 
         # submit a job in reddis
         qjob.put({

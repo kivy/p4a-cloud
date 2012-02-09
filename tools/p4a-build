@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-host = 'http://txzone.net:5000/'
+host = 'http://build.kivy.org/'
 
 import json
 import os

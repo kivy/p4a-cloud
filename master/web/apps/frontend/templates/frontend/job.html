@@ -13,11 +13,11 @@
 		<h2>Status</h2>
 		<div class="clear"></div>
 		<p>{{ job.package_title }}, version {{ job.package_version }}
-			{% if job.is_failed %}
+			{% if job.is_failed == '1' %}
 			have failed building.
-			{% elif job.is_done %}
+			{% elif job.is_done == '1' %}
 			is done
-			{% elif job.is_started %}
+			{% elif job.is_started  == '1' %}
 			is building
 			{% else %}
 			is waiting in queue
@@ -25,7 +25,7 @@
 		</p>
 		<div class="statusbar">
 		<div class="statusmessage">{{status}}</div>
-		<div class="progressbar {% if job.is_failed %}failed{% endif %}" style="width: {{pprogress}}%"></div>
+		<div class="progressbar {% if job.is_failed == '1' %}failed{% endif %}" style="width: {{pprogress}}%"></div>
 		</div>
 	</div>
 	<div id="col2">
@@ -47,9 +47,9 @@
 	<li>Package version: {{ job.package_version }}</li>
 	<li>Build status: {{ job.build_status }}</li>
 	<li>Status:
-		{% if job.is_done %}
+		{% if job.is_done == '1' %}
 		Done
-		{% elif job.is_started %}
+		{% elif job.is_started == '1' %}
 		Building
 		{% else %}
 		Waiting in queue
@@ -60,7 +60,7 @@
 <h2>Logs</h2>
 <div class="clear"></div>
 <pre class="logs">
-{% for line in joblog %}{{ line.msg.replace(
+{% for line in joblog %}{{ line.replace(
 	'>', '&lt;').replace(
 	'<', '&gt;').replace(
 	'\n', '<br/>').replace(
@@ -71,5 +71,7 @@
 {% endfor %}
 </pre>
 </ul>
+
+{{ job }}
 
 {% endblock %}

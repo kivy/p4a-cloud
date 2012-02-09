@@ -1,0 +1,8 @@
+www:
+    type: python
+
+queue:
+    type: redis
+
+worker:
+    type: python-worker

@@ -1,12 +1,8 @@
 __all__ = ('app', )
 
-import sys
-from os.path import dirname, join
-from flask import Flask, g
+from flask import Flask
 from web.config import config
 from time import time, localtime, strftime
-
-sys.path += [join(dirname(__file__), 'libs')]
 
 def delta_time(seconds):
     seconds = int(seconds)
@@ -42,6 +38,3 @@ def datetimeformat(value, format='%d/%m/%Y %H:%M'):
         r=''
     return r
 
-@app.before_request
-def lookup_current_user():
-    g.modules = app.modules

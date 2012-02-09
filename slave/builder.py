@@ -122,7 +122,7 @@ def builder(job_dir, **job):
         fd.write(r.content)
 
     # icon ?
-    if job['have_icon']:
+    if job['have_icon'] == '1':
         url_icon = url_base + '/api/icon/' + uid
         r = requests.get(url_icon)
         r.raise_for_status()
@@ -131,7 +131,7 @@ def builder(job_dir, **job):
             fd.write(r.content)
 
     # presplash ?
-    if job['have_presplash']:
+    if job['have_presplash'] == '1':
         url_presplash = url_base + '/api/presplash/' + uid
         r = requests.get(url_presplash)
         r.raise_for_status()
@@ -155,10 +155,10 @@ def builder(job_dir, **job):
         '--version', job['package_version'],
         '--private', app_dir,
         '--orientation', job['package_orientation']]
-    if job['have_icon']:
+    if job['have_icon'] == '1':
         build.append('--icon')
         build.append(icon_fn)
-    if job['have_presplash']:
+    if job['have_presplash'] == '1':
         build.append('--presplash')
         build.append(presplash_fn)
     if job['package_permissions']:
@@ -199,6 +199,8 @@ for task in qjob.consume():
         qlog.put({'cmd': 'done', 'uid': uid})
     except Exception, e:
         print 'Got exception', e
+        import traceback
+        traceback.print_exc()
         qlog.put({'cmd': 'exception', 'uid': uid, 'msg': str(e)})
     finally:
         # just to be entirely sure sure sure
