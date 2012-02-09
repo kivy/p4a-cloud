@@ -153,6 +153,14 @@ def index():
     form = JobForm()
     return render_template('frontend/index.html', form=form)
 
+@frontend.route('/faq')
+def faq():
+    return render_template('frontend/faq.html')
+
+@frontend.route('/about')
+def about():
+    return render_template('frontend/about.html')
+
 def csplit(s):
     return ' '.join([x for x in re.split(r'[.; ]', s) if len(x)])
 

@@ -9,7 +9,7 @@ import json
 # configuration
 config = ConfigParser()
 config.add_section('www'),
-config.set('www', 'secret_key', 'http://build.kivy.org/')
+config.set('www', 'baseurl', 'http://android.kivy.org/')
 config.set('www', 'secret_key', '')
 
 config.add_section('database')
@@ -43,7 +43,6 @@ if env is None:
         pass
 else:
     # use dotcloud env
-    config.set('database', 'url', env['DOTCLOUD_DATA_MYSQL_URL'] + '/mysql')
     config.set('redis', 'host', env['DOTCLOUD_QUEUE_REDIS_HOST'])
     config.set('redis', 'port', env['DOTCLOUD_QUEUE_REDIS_PORT'])
     config.set('redis', 'password', env['DOTCLOUD_QUEUE_REDIS_PASSWORD'])

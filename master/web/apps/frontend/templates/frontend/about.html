@@ -1,0 +1,56 @@
+{% extends "frontend/layout.html" %}
+{% block content %}
+
+<h1><a href="{{ url_for('frontend.index') }}">Python for Android - About</a></h1>
+
+<h2>What is it?</h2>
+<div class="clear"></div>
+<p>This is a service for building your APK from your python source code. We
+know that it can be a pain to compile the python source code, modules, and put
+everything in an APK to make it work. With some constraint, we are able to do
+that for you.<p>
+<p>The whole website is based on top of <a href="http://github.com/kivy/python-for-android">Python for Android</a> project.</p>
+
+<h2>How it works?</h2>
+<div class="clear"></div>
+<p>You submit a zip file containing your python source code, and give some information like the package name, title, version, python modules to include etc. Then when available, a cloud builder will build your project, and give you an APK in debug or release mode, on an URL or email.</p>
+
+<p>All the jobs are trashed (failed or done) after 48h, or as soon as you click on Delete button. We are not keeping any informations from your build.</p>
+
+<h2>Where to start ?</h2>
+<div class="clear"></div>
+<p>You can read how to create the <a
+	ref="http://python-for-android.readthedocs.org/en/latest/helloworld/">Hello
+	world example</a>. Then you can use our p4a-build tool for pushing your application on this service</p>
+<pre>
+pip install --upgrade p4a-build
+p4a-build --package com.test.helloworld --name 'Hello world' --version '1.0' \
+  --modules 'kivy' --dir /path/to/helloworld
+</pre>
+
+<p>It will give you a <code>Hello-world-1.0-debug.apk</code></p>
+
+<h2>How to install an APK?</h2>
+<div class="clear"></div>
+<p>If you have created a debug APK, then you need to use adb tool from the android SDK, and write:</p>
+<pre>adb install -r Hello-world-1.0-debug.apk</pre>
+
+<h2>How to sign a release APK?</h2>
+<div class="clear"></div>
+<p>If you've created a release APK (with <code>--release</code>), you will need to sign the package for beeing able to install it in any android device, and to submit it on the android market.
+Go to <a href="http://developer.android.com/guide/publishing/app-signing.html">Signing Your Applications</a> from the android guide, in the section "Signing Release Mode"</p>
+<p>Basically, it can be done in 3 steps when you have your keystore available:</p>
+<pre>
+jarsigner -verbose -keystore /path/to/your/key.keystore \
+    Hello-world-1.0-release-unsigned.apk my_keyname
+jarsigner -verbose -verify Hello-world-1.0-release-unsigned.apk
+zipalign -v 4 Hello-world-1.0-release-unsigned.apk Hello-world-1.0.apk
+</pre>
+
+<p>&nbsp;</p>
+
+<h2>How can i participate?</h2>
+<div class="clear"></div>
+<p>Take a look at the <a href="http://github.com/kivy/p4a-cloud">Python for android - cloud project on github</a></p>
+
+{% endblock %}

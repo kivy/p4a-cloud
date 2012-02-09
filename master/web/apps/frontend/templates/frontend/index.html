@@ -1,10 +1,11 @@
 {% from "frontend/_formhelpers.html" import form_begin, form_field, form_end %}
 
 {% extends "frontend/layout.html" %}
-{% block title %}P4A Build Cloud{% endblock %}
 {% block body_class %}focus{% endblock%}
 {% block content %}
-<h1><a href="{{ url_for('frontend.index') }}">P4A Build Cloud</a></h1>
+<h1><a href="{{ url_for('frontend.index') }}">Python for Android - Cloud builder</a></h1>
+<p>Create <a href="http://developer.android.com/guide/developing/building/index.html#detailed-build">Android APK</a> package from your Python source code using <a href="http://github.com/kivy/python-for-android">Python for android</a>. <a href="/about">Tell me more &raquo;</A>
+</p>
 
 <div id="col1">
 	<h2>Web submission</h2>

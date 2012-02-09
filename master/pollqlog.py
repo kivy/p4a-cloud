@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 '''
 Poll the log queue (builder -> webservice).
 Must be started on the same server than the web service.
