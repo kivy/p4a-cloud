@@ -239,7 +239,7 @@ def submit():
             'emails': csplit(job.emails),
             'have_icon': job.have_icon,
             'have_presplash': job.have_presplash,
-            'mode': 'release' if job.is_release else 'debug',
+            'mode': 'release' if job.is_release == '1' else 'debug',
             'modules': csplit(job.modules)
         })
 
