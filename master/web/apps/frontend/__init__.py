@@ -91,8 +91,12 @@ def delete(uid):
     if d and len(d) > 10:
         subprocess.Popen(['rm', '-rf', d], shell=False).communicate()
 
-    r.delete('job:%s*' % uid)
-    r.delete('log:%s*' % uid)
+    keys = r.keys('job:%s*' % uid)
+    if keys:
+        r.delete(*keys)
+    keys = r.keys('log:%s*' % uid)
+    if keys:
+        r.delete(*keys)
 
     return redirect(url_for('frontend.index'))
 
@@ -219,7 +223,7 @@ def submit():
         r.set(basekey + 'apk', '')
 
         # creation finished
-        r.set(jobkey, 1)
+        r.set(jobkey, uid)
 
         # not optimized, but reread it.
         job = read_job(uid)
