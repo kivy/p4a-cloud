@@ -32,7 +32,7 @@
 		<h2>Actions</h2>
 		<div class="clear"></div>
 		<div>
-		{% if job.is_done %}
+		{% if job.is_done == '1' %}
 			<a class="button" href="{{url_for('frontend.download', uid=job.uid, apk=job.apk)}}">Download {{job.apk}}</a>
 		{% endif %}
 		<a class="button buttoncancel" href="{{url_for('frontend.delete', uid=job.uid)}}">Delete</a>
