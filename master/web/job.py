@@ -44,12 +44,12 @@ class JobObj(QueryDict):
     def notify(self):
         if len(self.emails) == 0:
             return
-        status = 'failed build' if self.is_failed else 'finished'
+        status = 'failed build' if self.is_failed == '1' else 'finished'
         subject = '[p4a] Build %s, version %s %s' % (
             self.package_title,
             self.package_version,
             status)
-        if self.is_failed:
+        if self.is_failed == '1':
             content = ('Hi,\n\nYour package %s failed to build.\n\n'
                     'Informations: %s\n\nP4A Build Cloud.') % (
                 self.package_title,

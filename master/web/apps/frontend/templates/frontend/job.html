@@ -8,38 +8,40 @@
 
 <h1><a href="{{ url_for('frontend.index') }}">Python for Android</a></h1>
 
-<ul>
-	<div id="col1">
-		<h2>Status</h2>
-		<div class="clear"></div>
-		<p>{{ job.package_title }}, version {{ job.package_version }}
-			{% if job.is_failed == '1' %}
-			have failed building.
-			{% elif job.is_done == '1' %}
-			is done
-			{% elif job.is_started  == '1' %}
-			is building
-			{% else %}
-			is waiting in queue
-			{% endif %}
-		</p>
-		<div class="statusbar">
-		<div class="statusmessage">{{status}}</div>
-		<div class="progressbar {% if job.is_failed == '1' %}failed{% endif %}" style="width: {{pprogress}}%"></div>
-		</div>
-	</div>
-	<div id="col2">
-		<h2>Actions</h2>
-		<div class="clear"></div>
-		<div>
-		{% if job.is_done == '1' %}
-			<a class="button" href="{{url_for('frontend.download', uid=job.uid, apk=job.apk)}}">Download {{job.apk}}</a>
-		{% endif %}
-		<a class="button buttoncancel" href="{{url_for('frontend.delete', uid=job.uid)}}">Delete</a>
-		</div>
-	</div>
-
+<div id="col1">
+	<h2>Status</h2>
 	<div class="clear"></div>
+	<p>{{ job.package_title }}, version {{ job.package_version }}
+		{% if job.is_failed == '1' %}
+		have failed building.
+		{% elif job.is_done == '1' %}
+		is done.<br/>
+		Finished at {{ job.dt_done|datetimeformat }}
+		{% elif job.is_started  == '1' %}
+		is building.<br/>
+		Started at {{ job.dt_started|datetimeformat }}
+		{% else %}
+		is waiting in queue.<br/>
+		Waiting from {{ job.dt_added|datetimeformat }}
+		{% endif %}
+	</p>
+	<div class="statusbar">
+	<div class="statusmessage">{{status}}</div>
+	<div class="progressbar {% if job.is_failed == '1' %}failed{% endif %}" style="width: {{pprogress}}%"></div>
+	</div>
+</div>
+<div id="col2">
+	<h2>Actions</h2>
+	<div class="clear"></div>
+	<div>
+	{% if job.is_done == '1' %}
+		<a class="button" href="{{url_for('frontend.download', uid=job.uid, apk=job.apk)}}">Download {{job.apk}}</a>
+	{% endif %}
+	<a class="button buttoncancel" href="{{url_for('frontend.delete', uid=job.uid)}}">Delete</a>
+	</div>
+</div>
+
+<div class="clear"></div>
 
 <h2>Logs</h2>
 <div class="clear"></div>
@@ -54,7 +56,6 @@
 	'[39;49;00m', '</span>')|safe }}<br/>
 {% endfor %}
 </pre>
-</ul>
 
 <h2>Options</h2>
 <div class="clear"></div>
