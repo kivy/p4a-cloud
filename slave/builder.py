@@ -1,8 +1,14 @@
 import re
-from os import mkdir
+from copy import copy
+from os import mkdir, environ
 from os.path import dirname, join, realpath, exists, basename
 from hotqueue import HotQueue
 from ConfigParser import ConfigParser
+from time import sleep
+
+buildenv = copy(environ)
+environ.pop('http_proxy', None)
+
 import subprocess
 import requests
 
@@ -61,7 +67,7 @@ def status(job, message):
 def command(job, command, cwd=None):
     global max_status
     process = subprocess.Popen(command, shell=False, cwd=cwd,
-            stderr=subprocess.STDOUT, stdout=subprocess.PIPE)
+            stderr=subprocess.STDOUT, stdout=subprocess.PIPE, env=buildenv)
     lines = []
     while process.poll() is None:
         line = process.stdout.readline()
@@ -178,8 +184,20 @@ def builder(job_dir, **job):
     status(job, 'Upload %s' % basename(apk_fn))
     with open(apk_fn, 'rb') as fd:
         files = {'file': (basename(apk_fn), fd)}
-        r = requests.post(url_base + '/api/push/' + uid, files=files)
-        r.raise_for_status()
+        count = 5
+        while count:
+            try:
+                status(job, 'Uploading (%d remaining)' % count)
+                r = requests.post(url_base + '/api/push/' + uid, files=files)
+                r.raise_for_status()
+                break
+            except:
+                count -= 1
+                status(job, 'Upload failed (%d remaining)' % count)
+                import pudb; pudb.set_trace()
+                if not count:
+                    raise
+                sleep(5)
 
     status(job, 'Done')
 
