@@ -189,15 +189,16 @@ def builder(job_dir, **job):
             try:
                 status(job, 'Uploading (%d remaining)' % count)
                 r = requests.post(url_base + '/api/push/' + uid, files=files)
-                r.raise_for_status()
-                break
             except:
                 count -= 1
                 status(job, 'Upload failed (%d remaining)' % count)
-                import pudb; pudb.set_trace()
                 if not count:
                     raise
                 sleep(5)
+                continue
+
+            r.raise_for_status()
+            break
 
     status(job, 'Done')
 
