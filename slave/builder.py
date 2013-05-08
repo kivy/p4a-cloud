@@ -1,4 +1,5 @@
 import re
+import socket
 from copy import copy
 from os import mkdir, environ
 from os.path import dirname, join, realpath, exists, basename
@@ -13,6 +14,7 @@ import subprocess
 import requests
 
 # reading the configuration
+hostname = socket.gethostname()
 config = ConfigParser()
 config.read(join(dirname(__file__), 'config.cfg'))
 
@@ -32,7 +34,7 @@ qlog = HotQueue(
     password=config.get('hotqueue', 'password'))
 
 # put a hello world message
-qlog.put({'cmd': 'online'})
+qlog.put({'cmd': 'alive', 'host': hostname})
 
 # create the job directory if not exist
 root_dir = realpath(join(dirname(__file__), 'jobs'))
@@ -61,8 +63,10 @@ def status(job, message):
     id_status += 1
     print job['uid'], message
     message = '[%d/%d] ' % (id_status, max_status) + message
-    qlog.put({'cmd': 'status', 'uid': job['uid'], 'msg': message})
-    qlog.put({'cmd': 'log', 'uid': job['uid'], 'line': message})
+    qlog.put({'cmd': 'status', 'uid': job['uid'], 'msg': message, 'host':
+        hostname})
+    qlog.put({'cmd': 'log', 'uid': job['uid'], 'line': message, 'host':
+        hostname})
 
 def command(job, command, cwd=None):
     global max_status
@@ -106,7 +110,8 @@ def command(job, command, cwd=None):
     print process.returncode, command
     if process.returncode != 0:
         qlog.put({'cmd': 'status', 'uid': job['uid'],
-            'msg': 'Error while executing %r' % command})
+            'msg': 'Error while executing %r' % command,
+            'host': hostname})
         raise Exception('Error on %r.\n\n%s' % (command, '\n'.join(lines)))
 
 def builder(job_dir, **job):
@@ -204,7 +209,12 @@ def builder(job_dir, **job):
 
 # === go !
 print '== Ready to build!'
-for task in qjob.consume():
+while True:
+    qlog.put({'cmd': 'available', 'host': hostname})
+    task = qjob.get(timeout=5, block=True)
+    if task is None:
+        continue
+    qlog.put({'cmd': 'busy', 'host': hostname})
     uid = task['uid']
     try:
         id_status = 0
@@ -213,14 +223,15 @@ for task in qjob.consume():
         # create a directory
         job_dir = realpath(join(root_dir, uid))
         mkdir(job_dir)
-        qlog.put({'cmd': 'start', 'uid': uid})
+        qlog.put({'cmd': 'start', 'uid': uid, 'host': hostname})
         builder(job_dir, **task)
-        qlog.put({'cmd': 'done', 'uid': uid})
+        qlog.put({'cmd': 'done', 'uid': uid, 'host': hostname})
     except Exception, e:
         print 'Got exception', e
         import traceback
         traceback.print_exc()
-        qlog.put({'cmd': 'exception', 'uid': uid, 'msg': str(e)})
+        qlog.put({'cmd': 'exception', 'uid': uid, 'msg': str(e), 'host':
+            hostname})
     finally:
         # just to be entirely sure sure sure
         if len(uid) > 10 and not '.' in uid and job_dir.endswith(uid):

@@ -165,6 +165,23 @@ def faq():
 def about():
     return render_template('frontend/about.html')
 
+@frontend.route('/status')
+def status():
+    key = qjob.key
+    queue_len = qjob._HotQueue__redis.llen(key)
+
+    hosts_last_alive = r.keys('host:*:last_alive')
+    hosts = [x.split(':')[1] for x in hosts_last_alive]
+
+    stats = {}
+    for host in hosts:
+        stats[host] = {
+                'last_seen': int(time() - float(r.get('host:{}:last_alive'.format(host)))),
+                'status': r.get('host:{}:status'.format(host))}
+
+    return render_template('frontend/status.html', queue_len=queue_len,
+            stats=stats)
+
 def csplit(s):
     return ' '.join([x for x in re.split(r'[.; ]', s) if len(x)])
 

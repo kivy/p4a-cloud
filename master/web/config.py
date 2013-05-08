@@ -20,32 +20,18 @@ config.set('redis', 'host', 'localhost')
 config.set('redis', 'port', '6379')
 config.set('redis', 'password', '')
 
-# are we on dotcloud ?
-env = None
+# read existing file
+config_fn = join(dirname(__file__), '..', 'config.cfg')
+if exists(config_fn):
+	config.read(config_fn)
+
+# write current config if possible
 try:
-    with open('/home/dotcloud/environment.json') as fd:
-        env = json.load(fd)
-except:
-    pass
-
-if env is None:
-    # read existing file
-    config_fn = join(dirname(__file__), '..', 'config.cfg')
-    if exists(config_fn):
-        config.read(config_fn)
-
-    # write current config if possible
-    try:
-        fd = open(config_fn, 'w')
-        config.write(fd)
-        fd.close()
-    except Exception:
-        pass
-else:
-    # use dotcloud env
-    config.set('redis', 'host', env['DOTCLOUD_QUEUE_REDIS_HOST'])
-    config.set('redis', 'port', env['DOTCLOUD_QUEUE_REDIS_PORT'])
-    config.set('redis', 'password', env['DOTCLOUD_QUEUE_REDIS_PASSWORD'])
+	fd = open(config_fn, 'w')
+	config.write(fd)
+	fd.close()
+except Exception:
+	pass
 
 # start the queue
 qjob = HotQueue(

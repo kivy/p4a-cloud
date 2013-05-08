@@ -1,5 +1,10 @@
 import sys
-sys.path.append('/home/dotcloud/current')
+import os
+from os.path import dirname, join
+sys.path.insert(0, dirname(__file__))
+activate_this = join(dirname(__file__), '.env', 'bin', 'activate_this.py')
+execfile(activate_this, dict(__file__=activate_this))
+
 from web import app as application
 from web.apps.frontend import frontend
 application.register_blueprint(frontend)

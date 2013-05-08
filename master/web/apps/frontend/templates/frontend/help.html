@@ -1,0 +1,28 @@
+{% extends "frontend/layout.html" %}
+{% block content %}
+
+<h1><a href="{{ url_for('frontend.index') }}">Python for Android - About</a></h1>
+
+<h2>What is it?</h2>
+<div class="clear"></div>
+<p>This is a service for building your APK from your python source code. We
+know that it can be a pain to compile the python source code, modules, and put
+everything in an APK to make it work. With some constraint, we are able to do
+that for you.<p>
+<p>The whole website is based on top of <a href="http://github.com/kivy/python-for-android">Python for Android</a> project.</p>
+
+<h2>How it works?</h2>
+<div class="clear"></div>
+<p>You submit a zip file containing your python source code, and give some information like the package name, title, version, python modules to include etc. Then when available, a cloud builder will build your project, and give you an APK in debug or release mode, on an URL or email.</p>
+
+<h2>Where to start ?</h2>
+<div class="clear"></div>
+<p>You can read how to create the <a
+	ref="http://python-for-android.readthedocs.org/en/latest/helloworld/">Hello
+	world example</a>. Then you can use our p4a-build tool for pushing your application on this service</p>
+
+
+
+
+
+{% endblock %}

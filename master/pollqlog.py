@@ -6,8 +6,10 @@ Must be started on the same server than the web service.
 
 import sys
 import os
-import subprocess
-sys.path = [os.path.join(os.path.dirname(__file__))] + sys.path
+from os.path import dirname, join
+sys.path.insert(0, dirname(__file__))
+activate_this = join(dirname(__file__), '.env', 'bin', 'activate_this.py')
+execfile(activate_this, dict(__file__=activate_this))
 
 from web.config import config, r
 from hotqueue import HotQueue
@@ -22,14 +24,19 @@ qlog = HotQueue(
     password=config.get('redis', 'password'),
     db=0)
 
-qlog.put({'cmd': 'purge', 'uid': 'moij'})
+qlog.put({'cmd': 'purge'})
 
 def loop_handle(log):
-    print log
-    if 'cmd' not in log or 'uid' not in log:
+    if 'cmd' not in log:
         return
     cmd = log['cmd']
-    uid = log['uid']
+
+    if 'host' in log:
+        r.set('host:{}:last_alive'.format(log['host']), time())
+
+    if cmd in ('available', 'busy'):
+        r.set('host:{}:status'.format(log['host']), cmd)
+        return
 
     if cmd == 'purge':
         # search all projects done last 48h
@@ -60,6 +67,12 @@ def loop_handle(log):
                 r.delete(*keys)
 
         return
+
+    # next command _need_ uid.
+
+    if 'uid' not in log:
+        return
+    uid = log['uid']
 
     jobkey = 'job:%s' % uid
     if not r.keys(jobkey):
@@ -94,7 +107,7 @@ def loop_handle(log):
 if __name__ == '__main__':
     while True:
         # trigger a purge every hour
-        qlog.put({'cmd': 'purge', 'uid': 'moij'})
+        qlog.put({'cmd': 'purge'})
         for log in qlog.consume(timeout=3600):
             loop_handle(log)
         # sleep only 1 second if we keep asking break

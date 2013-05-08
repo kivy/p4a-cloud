@@ -6,3 +6,10 @@
 *.swp
 *.DS_Store
 *.kpf
+master/pollqlog.log
+master/config.cfg
+slave/builder.log
+slave/cache/*
+slave/config.cfg
+slave/python-for-android
+tools
